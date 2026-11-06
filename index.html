@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Temukan semua tautan dan informasi saya di satu tempat."
+    />
+    <meta name="theme-color" content="#f2ead8" />
+    <title>Semua Tautan Saya</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <main class="page">
+      <div class="masthead">
+        <span>DAFFA'S HOME PAGE</span>
+        <span class="masthead-date">EST. 1998 · INTERNET LINK BOOK</span>
+      </div>
+      <section class="profile" aria-labelledby="profile-name">
+        <div class="avatar-wrap">
+          <div class="avatar" id="avatar" aria-hidden="true">D</div>
+          <span class="avatar-seal" aria-hidden="true">印</span>
+        </div>
+        <p class="eyebrow">ようこそ · WELCOME TO MY CORNER</p>
+        <h1 id="profile-name">Daffa</h1>
+        <div
+          class="social-links"
+          id="social-links"
+          aria-label="Tautan sosial"
+        ></div>
+        <p class="bio" id="profile-bio">
+          Kreator digital yang suka berbagi hal-hal menarik.
+        </p>
+      </section>
+
+      <section class="links-section" aria-labelledby="links-heading">
+        <div class="section-heading">
+          <span class="section-jp" aria-hidden="true">リンク集</span>
+          <h2 id="links-heading">Temukan saya di sini</h2>
+          <span class="section-jp" aria-hidden="true">リンク集</span>
+        </div>
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <span class="visually-hidden">Cari tautan</span>
+          <input
+            id="link-search"
+            type="search"
+            placeholder="Cari tautan..."
+            autocomplete="off"
+          />
+          <kbd>SEARCH</kbd>
+        </label>
+        <div class="link-list" id="link-list"></div>
+      </section>
+
+      <footer>
+        <span class="footer-mark" aria-hidden="true">✳</span>
+        <p>THANK YOU FOR VISITING <span aria-hidden="true">♥</span></p>
+        <span class="footer-mark" aria-hidden="true">✳</span>
+      </footer>
+      <p class="visitor-note">あなたはこのページを見ています · HAVE A NICE DAY</p>
+    </main>
+  </body>
+</html>

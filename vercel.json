@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/atur",
+      "destination": "/atur/index.html"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Masuk untuk mengelola tautan pada halaman pribadi."
+    />
+    <meta name="theme-color" content="#f2ead8" />
+    <title>Kelola Tautan — Daffa</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="../app.js"></script>
+  </head>
+  <body>
+    <main class="page admin-page">
+      <div class="masthead">
+        <span>DAFFA'S HOME PAGE</span>
+        <span class="masthead-date">PRIVATE CONTROL ROOM · 1998</span>
+      </div>
+      <a class="text-button back-link" href="/">← Kembali ke halaman utama</a>
+
+      <section
+        class="admin-panel"
+        id="admin-panel"
+        aria-labelledby="admin-heading"
+      >
+        <div class="admin-heading">
+          <div>
+            <p class="eyebrow">秘密 · PRIVATE AREA</p>
+            <h1 id="admin-heading">Kelola tautan</h1>
+          </div>
+        </div>
+
+        <p class="notice" id="admin-notice" role="status" hidden></p>
+
+        <div id="login-view" hidden>
+          <form class="admin-form" id="login-form">
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="username" required />
+            </label>
+            <label>
+              Kata sandi
+              <input
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+              />
+            </label>
+            <button class="primary-button" type="submit">Masuk</button>
+          </form>
+        </div>
+
+        <div id="manager-view" hidden>
+          <div class="manager-toolbar">
+            <p>Perubahan tersimpan dan langsung tampil di halaman.</p>
+            <button class="text-button" id="sign-out" type="button">Keluar</button>
+          </div>
+          <form class="admin-form" id="link-form">
+            <input name="id" type="hidden" />
+            <label>
+              Nama tautan
+              <input
+                name="title"
+                maxlength="80"
+                placeholder="Contoh: Instagram"
+                required
+              />
+            </label>
+            <label>
+              URL tujuan
+              <input
+                name="url"
+                type="text"
+                inputmode="url"
+                placeholder="https://instagram.com/namapengguna"
+                required
+              />
+            </label>
+            <label>
+              Keterangan <span class="optional">(opsional)</span>
+              <input
+                name="description"
+                maxlength="160"
+                placeholder="Ceritakan sedikit tentang tautan ini"
+              />
+            </label>
+            <label>
+              Ikon <span class="optional">(emoji atau simbol)</span>
+              <input name="icon" maxlength="8" value="↗" />
+            </label>
+            <label>
+              Grup <span class="optional">(opsional)</span>
+              <input
+                name="group_name"
+                maxlength="60"
+                placeholder="Contoh: Karya, Sosial, Favorit"
+              />
+            </label>
+            <label class="checkbox-label">
+              <input name="is_social" type="checkbox" />
+              Tampilkan sebagai ikon sosial di bawah nama
+            </label>
+            <label class="checkbox-label">
+              <input name="featured" type="checkbox" />
+              Sorot tautan ini
+            </label>
+            <div class="form-actions">
+              <button class="primary-button" id="save-link" type="submit">
+                Tambah tautan
+              </button>
+              <button class="text-button" id="cancel-edit" type="button" hidden>
+                Batal edit
+              </button>
+            </div>
+          </form>
+          <h2 class="saved-heading">Tautan tersimpan</h2>
+          <div class="manage-list" id="manage-list"></div>
+        </div>
+      </section>
+
+      <footer>
+        <span class="footer-mark" aria-hidden="true">✳</span>
+        <p>Dibuat dengan sepenuh hati <span aria-label="cinta">♥</span></p>
+      </footer>
+    </main>
+  </body>
+</html>
