@@ -101,19 +101,25 @@ function createLinkAnchor(link, isSocial = false) {
   icon.setAttribute("aria-hidden", "true");
   const iconSource = link.icon_source || "symbol";
   const fallback = iconSource === "symbol" ? link.icon || "↗" : iconFallbacks[iconSource] || "↗";
-  const imageUrl = getIconImageUrl(link);
+  const imageUrls = getIconImageUrls(link);
 
-  if (imageUrl) {
+  if (imageUrls.length > 0) {
     const image = document.createElement("img");
     image.className = "link-icon-image";
     image.alt = "";
     image.loading = "lazy";
-    image.addEventListener("error", () => {
-      icon.textContent = fallback;
-      image.remove();
-    }, { once: true });
     icon.append(image);
-    image.src = imageUrl;
+    let imageIndex = 0;
+    image.addEventListener("error", () => {
+      imageIndex += 1;
+      if (imageIndex < imageUrls.length) {
+        image.src = imageUrls[imageIndex];
+      } else {
+        icon.textContent = fallback;
+        image.remove();
+      }
+    });
+    image.src = imageUrls[imageIndex];
   } else {
     icon.textContent = fallback;
   }
@@ -123,19 +129,22 @@ function createLinkAnchor(link, isSocial = false) {
     return anchor;
   }
 
-  function getIconImageUrl(link) {
-    if (link.icon_source === "custom" && link.icon_url) return link.icon_url;
-    if (link.icon_source !== "favicon") return "";
+  function getIconImageUrls(link) {
+    if (link.icon_source === "custom" && link.icon_url) return [link.icon_url];
+    if (link.icon_source !== "favicon") return [];
 
     try {
       const target = new URL(link.url);
       if (target.protocol === "http:" || target.protocol === "https:") {
-        return new URL("/favicon.ico", target.origin).href;
+        return [
+          `https://icon.horse/icon/${encodeURIComponent(target.hostname)}`,
+          new URL("/favicon.ico", target.origin).href,
+        ];
       }
     } catch {
-      return "";
+      return [];
     }
-    return "";
+    return [];
   }
 
   const copy = document.createElement("span");

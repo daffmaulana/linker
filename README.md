@@ -31,9 +31,11 @@ biasa; pengelolaan tautan sehari-hari tidak memerlukan perubahan kode atau SQL.
 ## Menggunakan panel admin di `/atur`
 
 - Isi nama, URL, keterangan, dan ikon, lalu pilih **Tambah tautan**.
-- Pilih template ikon **Favicon website** untuk mencoba memuat `/favicon.ico`
-  dari situs tujuan. Jika situs tidak menyediakan favicon di alamat tersebut,
-  ikon template akan digunakan sebagai cadangan.
+- Pilih template ikon **Favicon website** untuk mengambil favicon yang terdaftar
+  pada domain tujuan, termasuk favicon dengan nama/path khusus. Jika layanan
+  favicon tidak menemukan ikon, halaman mencoba `/favicon.ico` lalu memakai
+  simbol sebagai cadangan. Pencarian favicon memakai layanan pihak ketiga
+  Icon Horse, sehingga hostname tujuan dikirim ke layanan tersebut.
 - Pilih template sosial/website, emoji/simbol, atau **Gambar dari URL**.
   URL gambar khusus harus menggunakan HTTPS.
 - Isi **Grup** untuk mengelompokkan tautan, misalnya `Karya`, `Sosial`, atau
