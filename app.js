@@ -38,6 +38,8 @@ const isConfigured =
 
 let supabase;
 let savedLinks = [];
+let draggedLinkId = null;
+let orderSaving = false;
 const iconFallbacks = {
   favicon: "◉",
   instagram: "◎",
@@ -57,32 +59,6 @@ function showNotice(message, isError = false) {
   adminNotice.hidden = false;
 }
 
-async function moveLink(link, offset) {
-  const currentIndex = savedLinks.findIndex((item) => item.id === link.id);
-  const targetIndex = currentIndex + offset;
-  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= savedLinks.length) return;
-
-  const reorderedLinks = [...savedLinks];
-  const [movedLink] = reorderedLinks.splice(currentIndex, 1);
-  reorderedLinks.splice(targetIndex, 0, movedLink);
-
-  for (const [position, item] of reorderedLinks.entries()) {
-    const { error } = await supabase
-      .from("links")
-      .update({ position })
-      .eq("id", item.id);
-    if (error) {
-      showNotice(`Urutan tautan gagal disimpan: ${error.message}`, true);
-      await loadLinks();
-      return;
-    }
-  }
-
-  savedLinks = reorderedLinks.map((item, position) => ({ ...item, position }));
-  renderLinks(savedLinks, linkSearch?.value || "");
-  renderManager();
-}
-
 function createLinkAnchor(link, isSocial = false) {
   const anchor = document.createElement("a");
   anchor.className = isSocial
@@ -99,6 +75,12 @@ function createLinkAnchor(link, isSocial = false) {
   const icon = document.createElement("span");
   icon.className = isSocial ? "social-icon" : "link-icon";
   icon.setAttribute("aria-hidden", "true");
+  const iconFit = link.icon_fit === "height" ? "height" : "width";
+  icon.classList.add(`icon-fit-${iconFit}`);
+  const iconBackground = /^#[\da-f]{6}$/i.test(link.icon_background || "")
+    ? link.icon_background
+    : "#f3ead8";
+  icon.style.setProperty("--icon-background", iconBackground);
   const iconSource = link.icon_source || "symbol";
   const fallback = iconSource === "symbol" ? link.icon || "↗" : iconFallbacks[iconSource] || "↗";
   const imageUrls = getIconImageUrls(link);
@@ -231,6 +213,8 @@ function resetLinkForm() {
   linkForm.elements.icon.value = "↗";
   linkForm.elements.icon_source.value = "favicon";
   linkForm.elements.icon_url.value = "";
+  linkForm.elements.icon_fit.value = "width";
+  linkForm.elements.icon_background.value = "#f3ead8";
   linkForm.elements.group_name.value = "";
   linkForm.elements.is_social.checked = false;
   updateIconFields();
@@ -279,6 +263,12 @@ function renderManager() {
       linkForm.elements.icon_source.value = link.icon_source || "symbol";
       linkForm.elements.icon_url.value = link.icon_url || "";
       updateIconFields();
+      linkForm.elements.icon_fit.value = link.icon_fit || "width";
+      linkForm.elements.icon_background.value = /^#[\da-f]{6}$/i.test(
+        link.icon_background || "",
+      )
+        ? link.icon_background
+        : "#f3ead8";
       linkForm.elements.group_name.value = link.group_name || "";
       linkForm.elements.is_social.checked = link.is_social;
       linkForm.elements.featured.checked = link.featured;
@@ -293,23 +283,92 @@ function renderManager() {
     deleteButton.textContent = "Hapus";
     deleteButton.addEventListener("click", () => deleteLink(link));
 
-    const moveUpButton = document.createElement("button");
-    moveUpButton.className = "text-button order-button";
-    moveUpButton.type = "button";
-    moveUpButton.textContent = "↑";
-    moveUpButton.setAttribute("aria-label", `Naikkan ${link.title}`);
-    moveUpButton.disabled = savedLinks.indexOf(link) === 0;
-    moveUpButton.addEventListener("click", () => moveLink(link, -1));
+    const dragHandle = document.createElement("button");
+    dragHandle.className = "drag-handle";
+    dragHandle.type = "button";
+    dragHandle.textContent = "⠿";
+    dragHandle.dataset.linkId = link.id;
+    dragHandle.setAttribute("aria-label", `Atur urutan ${link.title}`);
+    dragHandle.title = "Seret untuk mengurutkan; Alt + panah atas/bawah untuk keyboard";
+    dragHandle.addEventListener("keydown", (event) => {
+      if (!event.altKey || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+      event.preventDefault();
+      reorderLinkByOffset(link.id, event.key === "ArrowUp" ? -1 : 1);
+    });
+    item.dataset.linkId = link.id;
+    item.setAttribute("role", "listitem");
+    dragHandle.addEventListener("pointerdown", (event) => {
+      if (!event.isPrimary || event.button !== 0 || orderSaving) return;
+      const startX = event.clientX;
+      const startY = event.clientY;
+      let isDragging = false;
+      let targetRow = null;
 
-    const moveDownButton = document.createElement("button");
-    moveDownButton.className = "text-button order-button";
-    moveDownButton.type = "button";
-    moveDownButton.textContent = "↓";
-    moveDownButton.setAttribute("aria-label", `Turunkan ${link.title}`);
-    moveDownButton.disabled = savedLinks.indexOf(link) === savedLinks.length - 1;
-    moveDownButton.addEventListener("click", () => moveLink(link, 1));
+      const clearTargets = () => {
+        manageList.querySelectorAll(".is-drop-target").forEach((row) => {
+          row.classList.remove("is-drop-target", "drop-before", "drop-after");
+        });
+      };
+      const cleanUpPointer = () => {
+        document.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerup", onPointerUp);
+        document.removeEventListener("pointercancel", onPointerCancel);
+        item.classList.remove("is-dragging");
+        clearTargets();
+      };
 
-    actions.append(moveUpButton, moveDownButton, editButton, deleteButton);
+      const onPointerMove = (moveEvent) => {
+        if (moveEvent.pointerId !== event.pointerId) return;
+        if (!isDragging && Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) < 6) {
+          return;
+        }
+
+        isDragging = true;
+        draggedLinkId = link.id;
+        moveEvent.preventDefault();
+        item.classList.add("is-dragging");
+        clearTargets();
+        targetRow = document
+          .elementFromPoint(moveEvent.clientX, moveEvent.clientY)
+          ?.closest(".manage-item");
+        if (!targetRow || targetRow.dataset.linkId === link.id) return;
+
+        const bounds = targetRow.getBoundingClientRect();
+        const dropAfter = moveEvent.clientY > bounds.top + bounds.height / 2;
+        targetRow.classList.toggle("drop-before", !dropAfter);
+        targetRow.classList.toggle("drop-after", dropAfter);
+        targetRow.classList.add("is-drop-target");
+      };
+
+      const onPointerUp = async (upEvent) => {
+        if (upEvent.pointerId !== event.pointerId) return;
+        cleanUpPointer();
+
+        if (!isDragging) return;
+        upEvent.preventDefault();
+        const dropRow = document
+          .elementFromPoint(upEvent.clientX, upEvent.clientY)
+          ?.closest(".manage-item");
+        const draggedId = draggedLinkId;
+        draggedLinkId = null;
+        if (!dropRow || dropRow.dataset.linkId === draggedId) return;
+
+        const bounds = dropRow.getBoundingClientRect();
+        const placeAfter = upEvent.clientY > bounds.top + bounds.height / 2;
+        await reorderLink(draggedId, dropRow.dataset.linkId, placeAfter);
+      };
+      const onPointerCancel = (cancelEvent) => {
+        if (cancelEvent.pointerId !== event.pointerId) return;
+        draggedLinkId = null;
+        cleanUpPointer();
+      };
+
+      document.addEventListener("pointermove", onPointerMove, { passive: false });
+      document.addEventListener("pointerup", onPointerUp);
+      document.addEventListener("pointercancel", onPointerCancel);
+    });
+
+    actions.append(dragHandle, editButton, deleteButton);
     item.append(details, actions);
     manageList.append(item);
   }
@@ -318,7 +377,7 @@ function renderManager() {
 async function loadLinks() {
   const { data, error } = await supabase
     .from("links")
-    .select("id, title, description, url, icon, icon_source, icon_url, group_name, is_social, featured, position")
+    .select("id, title, description, url, icon, icon_source, icon_url, icon_fit, icon_background, group_name, is_social, featured, position")
     .order("position", { ascending: true })
     .order("created_at", { ascending: true });
 
@@ -419,6 +478,8 @@ if (adminPanel) {
       icon: String(formData.get("icon")).trim() || "↗",
       icon_source: iconSource,
       icon_url: iconSource === "custom" ? iconUrl : "",
+      icon_fit: formData.get("icon_fit") === "height" ? "height" : "width",
+      icon_background: String(formData.get("icon_background")),
       group_name: String(formData.get("group_name")).trim(),
       is_social: formData.get("is_social") === "on",
       featured: formData.get("featured") === "on",
@@ -458,6 +519,59 @@ if (linkSearch) {
   linkSearch.addEventListener("input", () => {
     renderLinks(savedLinks, linkSearch.value);
   });
+}
+
+async function reorderLinkByOffset(linkId, offset) {
+  const index = savedLinks.findIndex((link) => link.id === linkId);
+  const targetIndex = index + offset;
+  if (index < 0 || targetIndex < 0 || targetIndex >= savedLinks.length) return;
+
+  const reorderedLinks = [...savedLinks];
+  const [link] = reorderedLinks.splice(index, 1);
+  reorderedLinks.splice(targetIndex, 0, link);
+  await saveLinkOrder(reorderedLinks, linkId);
+}
+
+async function reorderLink(sourceId, targetId, placeAfter) {
+  const reorderedLinks = [...savedLinks];
+  const sourceIndex = reorderedLinks.findIndex((link) => link.id === sourceId);
+  if (sourceIndex < 0 || !reorderedLinks.some((link) => link.id === targetId)) return;
+
+  const [source] = reorderedLinks.splice(sourceIndex, 1);
+  const targetIndex = reorderedLinks.findIndex((link) => link.id === targetId);
+  reorderedLinks.splice(targetIndex + Number(placeAfter), 0, source);
+  await saveLinkOrder(reorderedLinks);
+}
+
+async function saveLinkOrder(reorderedLinks, focusLinkId = "") {
+  if (orderSaving) return;
+  if (reorderedLinks.every((link, index) => link.id === savedLinks[index]?.id)) return;
+  orderSaving = true;
+  manageList.classList.add("is-reordering");
+
+  for (const [position, link] of reorderedLinks.entries()) {
+    const { error } = await supabase
+      .from("links")
+      .update({ position })
+      .eq("id", link.id);
+    if (error) {
+      orderSaving = false;
+      manageList.classList.remove("is-reordering");
+      showNotice(`Urutan tautan gagal disimpan: ${error.message}`, true);
+      await loadLinks();
+      return;
+    }
+  }
+
+  savedLinks = reorderedLinks.map((link, position) => ({ ...link, position }));
+  renderLinks(savedLinks, linkSearch?.value || "");
+  orderSaving = false;
+  manageList.classList.remove("is-reordering");
+  renderManager();
+  if (focusLinkId) {
+    manageList.querySelector(`.drag-handle[data-link-id="${focusLinkId}"]`)?.focus();
+  }
+  showNotice("Urutan tautan berhasil disimpan.");
 }
 
 async function deleteLink(link) {

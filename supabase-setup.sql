@@ -8,6 +8,9 @@ create table if not exists public.links (
   icon_source text not null default 'favicon'
     check (icon_source in ('favicon', 'instagram', 'youtube', 'tiktok', 'linkedin', 'github', 'email', 'globe', 'symbol', 'custom')),
   icon_url text not null default '' check (char_length(icon_url) <= 2048),
+  icon_fit text not null default 'width' check (icon_fit in ('width', 'height')),
+  icon_background text not null default '#f3ead8'
+    check (icon_background ~ '^#[0-9A-Fa-f]{6}$'),
   group_name text not null default '' check (char_length(group_name) <= 60),
   is_social boolean not null default false,
   featured boolean not null default false,
@@ -22,7 +25,11 @@ alter table public.links
   add column if not exists icon_source text not null default 'symbol'
     check (icon_source in ('favicon', 'instagram', 'youtube', 'tiktok', 'linkedin', 'github', 'email', 'globe', 'symbol', 'custom')),
   add column if not exists icon_url text not null default ''
-    check (char_length(icon_url) <= 2048);
+    check (char_length(icon_url) <= 2048),
+  add column if not exists icon_fit text not null default 'width'
+    check (icon_fit in ('width', 'height')),
+  add column if not exists icon_background text not null default '#f3ead8'
+    check (icon_background ~ '^#[0-9A-Fa-f]{6}$');
 
 alter table public.links enable row level security;
 

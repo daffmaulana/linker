@@ -194,16 +194,39 @@ h1 {
 }
 
 .social-icon {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--icon-background, #f3ead8);
   font-family: "Yu Mincho", "MS Mincho", serif;
   font-size: 18px;
   line-height: 1;
+}
+
+.link-icon {
+  background: var(--icon-background, #f3ead8);
 }
 
 .link-icon-image {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+}
+
+.icon-fit-width .link-icon-image {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+}
+
+.icon-fit-height .link-icon-image {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
 }
 
 .social-icon .link-icon-image {
@@ -593,6 +616,19 @@ footer p span {
   outline-offset: 2px;
 }
 
+.admin-form input[type="color"] {
+  width: 54px;
+  min-height: 36px;
+  padding: 3px;
+  cursor: pointer;
+}
+
+.admin-form .color-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .admin-form .optional {
   color: var(--muted-ink);
   font-weight: 400;
@@ -658,6 +694,36 @@ footer p span {
   min-width: 0;
   padding: 10px 0;
   border-top: 1px dotted var(--rule);
+  transition:
+    opacity 120ms linear,
+    background-color 120ms linear;
+}
+
+.manage-instructions {
+  margin: -2px 0 10px;
+  color: var(--muted-ink);
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.manage-item.is-dragging {
+  opacity: 0.4;
+}
+
+.manage-item.is-drop-target {
+  background: rgb(246 201 108 / 14%);
+}
+
+.manage-item.drop-before {
+  border-top: 2px solid var(--red);
+}
+
+.manage-item.drop-after {
+  box-shadow: inset 0 -2px var(--red);
+}
+
+.is-reordering .manage-item {
+  pointer-events: none;
 }
 
 .manage-copy {
@@ -689,15 +755,34 @@ footer p span {
   gap: 5px;
 }
 
-.order-button {
-  min-width: 29px;
-  padding: 5px;
-  font-size: 14px;
+.drag-handle {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border: 1px dashed var(--rule);
+  background: var(--paper);
+  color: var(--indigo);
+  cursor: grab;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  touch-action: none;
 }
 
-.order-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
+.drag-handle:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle:focus-visible {
+  outline: 2px dashed var(--red);
+  outline-offset: 2px;
 }
 
 .delete-button {

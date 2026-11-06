@@ -38,13 +38,16 @@ biasa; pengelolaan tautan sehari-hari tidak memerlukan perubahan kode atau SQL.
   Icon Horse, sehingga hostname tujuan dikirim ke layanan tersebut.
 - Pilih template sosial/website, emoji/simbol, atau **Gambar dari URL**.
   URL gambar khusus harus menggunakan HTTPS.
+- Atur **Sesuaikan gambar** ke fit width atau fit height, dan pilih **Warna
+  latar ikon**.
 - Isi **Grup** untuk mengelompokkan tautan, misalnya `Karya`, `Sosial`, atau
   `Favorit`. Tautan tanpa grup masuk ke bagian **Lainnya**.
 - Centang **Tampilkan sebagai ikon sosial di bawah nama** untuk menampilkan
   tautan sebagai ikon bulat di profil. Ikon yang Anda isi dipakai sebagai
   simbolnya.
 - Pilih **Edit** atau **Hapus** pada daftar tautan yang tersimpan.
-- Gunakan tombol panah naik/turun di daftar admin untuk mengubah urutan tautan.
+- Seret ikon ⠿ di samping tautan untuk mengubah urutannya. Keyboard: fokuskan
+  ikon pegangan, lalu gunakan `Alt` + panah atas/bawah.
 - URL menerima `https://`, `http://`, atau `mailto:`.
 - Centang **Sorot tautan ini** untuk menampilkan tautan dengan warna khusus.
 
