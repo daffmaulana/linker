@@ -5,6 +5,9 @@ create table if not exists public.links (
   description text not null default '' check (char_length(description) <= 160),
   url text not null check (char_length(url) <= 2048),
   icon text not null default '↗' check (char_length(icon) <= 8),
+  icon_source text not null default 'favicon'
+    check (icon_source in ('favicon', 'instagram', 'youtube', 'tiktok', 'linkedin', 'github', 'email', 'globe', 'symbol', 'custom')),
+  icon_url text not null default '' check (char_length(icon_url) <= 2048),
   group_name text not null default '' check (char_length(group_name) <= 60),
   is_social boolean not null default false,
   featured boolean not null default false,
@@ -15,7 +18,11 @@ create table if not exists public.links (
 alter table public.links
   add column if not exists group_name text not null default ''
     check (char_length(group_name) <= 60),
-  add column if not exists is_social boolean not null default false;
+  add column if not exists is_social boolean not null default false,
+  add column if not exists icon_source text not null default 'symbol'
+    check (icon_source in ('favicon', 'instagram', 'youtube', 'tiktok', 'linkedin', 'github', 'email', 'globe', 'symbol', 'custom')),
+  add column if not exists icon_url text not null default ''
+    check (char_length(icon_url) <= 2048);
 
 alter table public.links enable row level security;
 

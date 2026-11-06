@@ -31,12 +31,18 @@ biasa; pengelolaan tautan sehari-hari tidak memerlukan perubahan kode atau SQL.
 ## Menggunakan panel admin di `/atur`
 
 - Isi nama, URL, keterangan, dan ikon, lalu pilih **Tambah tautan**.
+- Pilih template ikon **Favicon website** untuk mencoba memuat `/favicon.ico`
+  dari situs tujuan. Jika situs tidak menyediakan favicon di alamat tersebut,
+  ikon template akan digunakan sebagai cadangan.
+- Pilih template sosial/website, emoji/simbol, atau **Gambar dari URL**.
+  URL gambar khusus harus menggunakan HTTPS.
 - Isi **Grup** untuk mengelompokkan tautan, misalnya `Karya`, `Sosial`, atau
   `Favorit`. Tautan tanpa grup masuk ke bagian **Lainnya**.
 - Centang **Tampilkan sebagai ikon sosial di bawah nama** untuk menampilkan
   tautan sebagai ikon bulat di profil. Ikon yang Anda isi dipakai sebagai
   simbolnya.
 - Pilih **Edit** atau **Hapus** pada daftar tautan yang tersimpan.
+- Gunakan tombol panah naik/turun di daftar admin untuk mengubah urutan tautan.
 - URL menerima `https://`, `http://`, atau `mailto:`.
 - Centang **Sorot tautan ini** untuk menampilkan tautan dengan warna khusus.
 
@@ -45,6 +51,15 @@ menurut grupnya, dan menyediakan pencarian langsung berdasarkan nama,
 keterangan, URL, maupun grup. Tautan dan perubahan tampil di halaman publik
 setelah disimpan. HTML, CSS, dan JavaScript di-host sebagai file statis;
 Supabase menangani login dan penyimpanan online.
+
+Metadata Open Graph/Twitter, deskripsi halaman, `favicon.svg`, dan gambar kartu
+berbagi `social-preview.png` (1200×630) disiapkan untuk preview saat tautan dibagikan.
+Setelah mendapat domain Vercel sendiri, ubah `og:image` dan `twitter:image` di
+`index.html` menjadi URL absolut situs Anda (misalnya
+`https://domain-anda.vercel.app/social-preview.png`) agar preview WhatsApp dapat
+mengambil gambarnya secara konsisten. Anda juga dapat menambahkan `og:url`
+dengan URL halaman utama tersebut. Cache preview WhatsApp mungkin perlu
+beberapa waktu untuk diperbarui.
 
 ## Deploy ke Vercel
 

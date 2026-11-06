@@ -199,6 +199,17 @@ h1 {
   line-height: 1;
 }
 
+.link-icon-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.social-icon .link-icon-image {
+  border-radius: 50%;
+}
+
 .visually-hidden {
   position: absolute;
   overflow: hidden;
@@ -562,7 +573,8 @@ footer p span {
   font-weight: 700;
 }
 
-.admin-form input:not([type="checkbox"]) {
+.admin-form input:not([type="checkbox"]),
+.admin-form select {
   width: 100%;
   min-height: 41px;
   padding: 9px 11px;
@@ -574,7 +586,8 @@ footer p span {
   font-size: 12px;
 }
 
-.admin-form input:focus {
+.admin-form input:focus,
+.admin-form select:focus {
   border-color: var(--indigo);
   outline: 2px dashed rgb(41 61 98 / 40%);
   outline-offset: 2px;
@@ -672,7 +685,19 @@ footer p span {
 .manage-actions {
   display: flex;
   flex: 0 0 auto;
+  align-items: center;
   gap: 5px;
+}
+
+.order-button {
+  min-width: 29px;
+  padding: 5px;
+  font-size: 14px;
+}
+
+.order-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
 }
 
 .delete-button {

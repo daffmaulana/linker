@@ -38,11 +38,49 @@ const isConfigured =
 
 let supabase;
 let savedLinks = [];
+const iconFallbacks = {
+  favicon: "◉",
+  instagram: "◎",
+  youtube: "▶",
+  tiktok: "♪",
+  linkedin: "in",
+  github: "◈",
+  email: "✉",
+  globe: "◉",
+  symbol: "↗",
+  custom: "↗",
+};
 
 function showNotice(message, isError = false) {
   adminNotice.textContent = message;
   adminNotice.classList.toggle("notice-error", isError);
   adminNotice.hidden = false;
+}
+
+async function moveLink(link, offset) {
+  const currentIndex = savedLinks.findIndex((item) => item.id === link.id);
+  const targetIndex = currentIndex + offset;
+  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= savedLinks.length) return;
+
+  const reorderedLinks = [...savedLinks];
+  const [movedLink] = reorderedLinks.splice(currentIndex, 1);
+  reorderedLinks.splice(targetIndex, 0, movedLink);
+
+  for (const [position, item] of reorderedLinks.entries()) {
+    const { error } = await supabase
+      .from("links")
+      .update({ position })
+      .eq("id", item.id);
+    if (error) {
+      showNotice(`Urutan tautan gagal disimpan: ${error.message}`, true);
+      await loadLinks();
+      return;
+    }
+  }
+
+  savedLinks = reorderedLinks.map((item, position) => ({ ...item, position }));
+  renderLinks(savedLinks, linkSearch?.value || "");
+  renderManager();
 }
 
 function createLinkAnchor(link, isSocial = false) {
@@ -61,11 +99,43 @@ function createLinkAnchor(link, isSocial = false) {
   const icon = document.createElement("span");
   icon.className = isSocial ? "social-icon" : "link-icon";
   icon.setAttribute("aria-hidden", "true");
-  icon.textContent = link.icon || "↗";
+  const iconSource = link.icon_source || "symbol";
+  const fallback = iconSource === "symbol" ? link.icon || "↗" : iconFallbacks[iconSource] || "↗";
+  const imageUrl = getIconImageUrl(link);
+
+  if (imageUrl) {
+    const image = document.createElement("img");
+    image.className = "link-icon-image";
+    image.alt = "";
+    image.loading = "lazy";
+    image.addEventListener("error", () => {
+      icon.textContent = fallback;
+      image.remove();
+    }, { once: true });
+    icon.append(image);
+    image.src = imageUrl;
+  } else {
+    icon.textContent = fallback;
+  }
 
   if (isSocial) {
     anchor.append(icon);
     return anchor;
+  }
+
+  function getIconImageUrl(link) {
+    if (link.icon_source === "custom" && link.icon_url) return link.icon_url;
+    if (link.icon_source !== "favicon") return "";
+
+    try {
+      const target = new URL(link.url);
+      if (target.protocol === "http:" || target.protocol === "https:") {
+        return new URL("/favicon.ico", target.origin).href;
+      }
+    } catch {
+      return "";
+    }
+    return "";
   }
 
   const copy = document.createElement("span");
@@ -119,6 +189,7 @@ function renderLinks(links, searchTerm = "") {
     linkList.append(empty);
     return;
   }
+  if (regularItems.length === 0) return;
 
   const groups = new Map();
   for (const link of regularItems) {
@@ -149,8 +220,11 @@ function resetLinkForm() {
   linkForm.reset();
   linkForm.elements.id.value = "";
   linkForm.elements.icon.value = "↗";
+  linkForm.elements.icon_source.value = "favicon";
+  linkForm.elements.icon_url.value = "";
   linkForm.elements.group_name.value = "";
   linkForm.elements.is_social.checked = false;
+  updateIconFields();
   saveButton.textContent = "Tambah tautan";
   cancelEditButton.hidden = true;
 }
@@ -176,7 +250,8 @@ function renderManager() {
     title.textContent = `${link.icon || "↗"} ${link.title}`;
     const url = document.createElement("span");
     const groupLabel = link.group_name || "Lainnya";
-    url.textContent = `${link.is_social ? "◉ Sosial · " : ""}${groupLabel} · ${link.url}`;
+    const orderLabel = savedLinks.indexOf(link) + 1;
+    url.textContent = `${orderLabel}. ${link.is_social ? "◉ Sosial · " : ""}${groupLabel} · ${link.url}`;
     details.append(title, url);
 
     const actions = document.createElement("div");
@@ -192,6 +267,9 @@ function renderManager() {
       linkForm.elements.url.value = link.url;
       linkForm.elements.description.value = link.description || "";
       linkForm.elements.icon.value = link.icon || "↗";
+      linkForm.elements.icon_source.value = link.icon_source || "symbol";
+      linkForm.elements.icon_url.value = link.icon_url || "";
+      updateIconFields();
       linkForm.elements.group_name.value = link.group_name || "";
       linkForm.elements.is_social.checked = link.is_social;
       linkForm.elements.featured.checked = link.featured;
@@ -206,7 +284,23 @@ function renderManager() {
     deleteButton.textContent = "Hapus";
     deleteButton.addEventListener("click", () => deleteLink(link));
 
-    actions.append(editButton, deleteButton);
+    const moveUpButton = document.createElement("button");
+    moveUpButton.className = "text-button order-button";
+    moveUpButton.type = "button";
+    moveUpButton.textContent = "↑";
+    moveUpButton.setAttribute("aria-label", `Naikkan ${link.title}`);
+    moveUpButton.disabled = savedLinks.indexOf(link) === 0;
+    moveUpButton.addEventListener("click", () => moveLink(link, -1));
+
+    const moveDownButton = document.createElement("button");
+    moveDownButton.className = "text-button order-button";
+    moveDownButton.type = "button";
+    moveDownButton.textContent = "↓";
+    moveDownButton.setAttribute("aria-label", `Turunkan ${link.title}`);
+    moveDownButton.disabled = savedLinks.indexOf(link) === savedLinks.length - 1;
+    moveDownButton.addEventListener("click", () => moveLink(link, 1));
+
+    actions.append(moveUpButton, moveDownButton, editButton, deleteButton);
     item.append(details, actions);
     manageList.append(item);
   }
@@ -215,7 +309,7 @@ function renderManager() {
 async function loadLinks() {
   const { data, error } = await supabase
     .from("links")
-    .select("id, title, description, url, icon, group_name, is_social, featured, position")
+    .select("id, title, description, url, icon, icon_source, icon_url, group_name, is_social, featured, position")
     .order("position", { ascending: true })
     .order("created_at", { ascending: true });
 
@@ -293,11 +387,29 @@ if (adminPanel) {
       return;
     }
 
+    const iconSource = String(formData.get("icon_source"));
+    const iconUrl = String(formData.get("icon_url")).trim();
+    if (iconSource === "custom") {
+      let parsedIconUrl;
+      try {
+        parsedIconUrl = new URL(iconUrl);
+      } catch {
+        showNotice("Masukkan URL gambar yang valid.", true);
+        return;
+      }
+      if (parsedIconUrl.protocol !== "https:") {
+        showNotice("URL gambar harus menggunakan https://.", true);
+        return;
+      }
+    }
+
     const payload = {
       title: String(formData.get("title")).trim(),
       description: String(formData.get("description")).trim(),
       url,
       icon: String(formData.get("icon")).trim() || "↗",
+      icon_source: iconSource,
+      icon_url: iconSource === "custom" ? iconUrl : "",
       group_name: String(formData.get("group_name")).trim(),
       is_social: formData.get("is_social") === "on",
       featured: formData.get("featured") === "on",
@@ -320,6 +432,17 @@ if (adminPanel) {
     showNotice(id ? "Perubahan tautan berhasil disimpan." : "Tautan berhasil ditambahkan.");
     await loadLinks();
   });
+}
+
+function updateIconFields() {
+  if (!linkForm) return;
+  const iconSource = linkForm.elements.icon_source.value;
+  document.querySelector("#icon-symbol-field").hidden = iconSource !== "symbol";
+  document.querySelector("#icon-url-field").hidden = iconSource !== "custom";
+}
+
+if (linkForm) {
+  linkForm.elements.icon_source.addEventListener("change", updateIconFields);
 }
 
 if (linkSearch) {

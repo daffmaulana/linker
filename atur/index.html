@@ -9,6 +9,7 @@
     />
     <meta name="theme-color" content="#f2ead8" />
     <title>Kelola Tautan — Daffa</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
     <link rel="stylesheet" href="../styles.css" />
     <script type="module" src="../app.js"></script>
   </head>
@@ -88,8 +89,32 @@
               />
             </label>
             <label>
-              Ikon <span class="optional">(emoji atau simbol)</span>
+              Template ikon
+              <select name="icon_source">
+                <option value="favicon" selected>Favicon website (default)</option>
+                <option value="instagram">Instagram · ◎</option>
+                <option value="youtube">YouTube · ▶</option>
+                <option value="tiktok">TikTok · ♪</option>
+                <option value="linkedin">LinkedIn · in</option>
+                <option value="github">GitHub · ◈</option>
+                <option value="email">Email · ✉</option>
+                <option value="globe">Website · ◉</option>
+                <option value="symbol">Emoji / simbol</option>
+                <option value="custom">Gambar dari URL</option>
+              </select>
+            </label>
+            <label id="icon-symbol-field" hidden>
+              Emoji atau simbol
               <input name="icon" maxlength="8" value="↗" />
+            </label>
+            <label id="icon-url-field" hidden>
+              URL gambar
+              <input
+                name="icon_url"
+                type="url"
+                inputmode="url"
+                placeholder="https://contoh.com/gambar.png"
+              />
             </label>
             <label>
               Grup <span class="optional">(opsional)</span>
