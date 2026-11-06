@@ -39,7 +39,8 @@ biasa; pengelolaan tautan sehari-hari tidak memerlukan perubahan kode atau SQL.
 - Pilih template sosial/website, emoji/simbol, atau **Gambar dari URL**.
   URL gambar khusus harus menggunakan HTTPS.
 - Atur **Sesuaikan gambar** ke fit width atau fit height, dan pilih **Warna
-  latar ikon**.
+  latar ikon**. Warna akan terlihat di belakang simbol atau sebagai bingkai
+  pada gambar; pengaturan ini juga berlaku untuk tautan yang disorot.
 - Isi **Grup** untuk mengelompokkan tautan, misalnya `Karya`, `Sosial`, atau
   `Favorit`. Tautan tanpa grup masuk ke bagian **Lainnya**.
 - Centang **Tampilkan sebagai ikon sosial di bawah nama** untuk menampilkan

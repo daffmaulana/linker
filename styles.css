@@ -206,14 +206,17 @@ h1 {
   line-height: 1;
 }
 
-.link-icon {
-  background: var(--icon-background, #f3ead8);
+.link-card-featured .link-icon {
+  border-color: rgb(255 248 233 / 45%);
+  background: var(--icon-background, rgb(255 248 233 / 10%));
+  color: #f4cb82;
 }
 
 .link-icon-image {
   display: block;
   width: 100%;
   height: 100%;
+  padding: 4px;
   object-fit: contain;
 }
 
@@ -423,16 +426,10 @@ h2 {
   flex: 0 0 41px;
   place-items: center;
   border: 1px solid var(--rule);
-  background: #f3ead8;
+  background: var(--icon-background, #f3ead8);
   color: var(--red);
   font-family: "Yu Mincho", "MS Mincho", serif;
   font-size: 20px;
-}
-
-.link-card-featured .link-icon {
-  border-color: rgb(255 248 233 / 45%);
-  background: rgb(255 248 233 / 10%);
-  color: #f4cb82;
 }
 
 .link-copy {
